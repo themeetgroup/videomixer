@@ -75,7 +75,6 @@ class Main:
         terminate = False
         bus = self.pipeline.get_bus()
         while True:
-            print("Interrupt")
             try:
                 msg = bus.timed_pop_filtered(
                     0.5 * Gst.SECOND,
@@ -93,30 +92,31 @@ class Main:
 
     def on_flvdemux_pad_added(self, src, new_pad):
         # TODO: handle linking audio, too.
+        sink_pad = None
         print(
             "Received new pad '{0:s}' from '{1:s}'".format(
                 new_pad.get_name(),
                 src.get_name()))
-
-        sink_pad = self.decodebin.get_static_pad("sink")
-        if (not sink_pad):
-            print("ERROR: Could not get decodebin sink")
-            sys.exit(1)
 
         # check the new pad's type
         new_pad_caps = new_pad.get_current_caps()
         new_pad_struct = new_pad_caps.get_structure(0)
         new_pad_type = new_pad_struct.get_name()
 
-        if new_pad_type.startswith("audio/x-raw"):
-            #sink_pad = self.audio_convert.get_static_pad("sink")
-            print("Got audio pad")
+        if new_pad_type.startswith("audio"):
+            print("Got audio pad. Not currently handling it.")
+            return
         elif new_pad_type.startswith("video/x-h264"):
             #sink_pad = self.video_convert.get_static_pad("sink")
             print("Got video pad")
+            sink_pad = self.decodebin.get_static_pad("sink")
         else:
             print(
                 "It has type '{0:s}' which is not raw audio/video. Ignoring.".format(new_pad_type))
+            return
+
+        if sink_pad is None:
+            print("No sink_pad defined. Bailing out.")
             return
 
         if (sink_pad.is_linked()):
@@ -127,7 +127,7 @@ class Main:
         if not ret == Gst.PadLinkReturn.OK:
             print("Link failed.")
 
-        print("Linked video pad")
+        print("Linked {0:s} pad".format(new_pad.get_name()))
 
         # Next we listen for the "src_0" pad to appear from decodebin, so we can hook it up
         # to the videomixer component.
