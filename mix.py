@@ -51,14 +51,19 @@ class Main:
 
         print("Linking elements")
         # TODO: handle audio pipeline stuff, too
+        # Link the RTMP source to the FLV demuxer
         ret = self.rtmp_src.link(self.queue)
         ret = ret and self.queue.link(self.flvdemux)
-        # We cannot link the flvdemux module to anything. We must link it dynamically.
+        # We cannot link the flvdemux module to decodebin. We must link it dynamically once the pads
+        # appear.
         
         # We cannot link decodebin to videomixer, either. We must link it dynamically, after
-        # flvdemux is dynamically linked to decodebin.
+        # flvdemux is dynamically linked to decodebin and the pad appears in decodebin.
+        # Encode the output of videomixer to H.264
         ret = ret and self.videomixer.link(self.x264enc)
+        # Put the H.264 into an FLV container
         ret = ret and self.x264enc.link(self.flvmux)
+        # Send the FLV to an RTMP sink
         ret = ret and self.flvmux.link(self.rtmpsink)
 
         if not ret:
