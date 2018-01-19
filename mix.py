@@ -51,14 +51,20 @@ class Main:
 
         print("Linking elements")
         # TODO: handle audio pipeline stuff, too
-        # Link the RTMP source to the FLV demuxer
+
+        # Link the RTMP source to a queue
         ret = self.rtmp_src.link(self.queue)
+        # Link the queue to an FLV demuxer
         ret = ret and self.queue.link(self.flvdemux)
+
         # We cannot link the flvdemux module to decodebin. We must link it dynamically once the pads
         # appear.
+        # ret = ret and self.flvdemux.link(self.decodebin)
         
         # We cannot link decodebin to videomixer, either. We must link it dynamically, after
         # flvdemux is dynamically linked to decodebin and the pad appears in decodebin.
+        # ret = ret and self.decodebin.link(self.videomixer)
+
         # Encode the output of videomixer to H.264
         ret = ret and self.videomixer.link(self.x264enc)
         # Put the H.264 into an FLV container
@@ -112,7 +118,6 @@ class Main:
             print("Got audio pad. Not currently handling it.")
             return
         elif new_pad_type.startswith("video/x-h264"):
-            #sink_pad = self.video_convert.get_static_pad("sink")
             print("Got video pad")
             sink_pad = self.decodebin.get_static_pad("sink")
         else:
