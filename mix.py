@@ -11,42 +11,43 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 class Main:
     def __init__(self):
         Gst.init(sys.argv)
-        print("Creating objects...")
-        # XXX: this does the same as below.
-        #self.pipeline = Gst.parse_launch('rtmpsrc location=rtmp://stream-0-stage.taggedvideo.com/live/mishatest1 ! flvdemux ! decodebin ! videomixer name=mix ! x264enc threads=0 ! flvmux streamable=1 ! rtmpsink location="rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink live=1"')
-        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc", "rtmpsrc0")
-        self.queue = Gst.ElementFactory.make("queue", "queue")
-        self.flvdemux = Gst.ElementFactory.make("flvdemux", "flv_demux")
-        self.decodebin = Gst.ElementFactory.make("decodebin", "decodebin")
-        self.videomixer = Gst.ElementFactory.make("videomixer", "mix")
-        #colorspace = Gst.ElementFactory.make("ffmpegcolorspace")
-        self.x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-        self.flvmux = Gst.ElementFactory.make("flvmux", "flvmux")
-        self.rtmpsink = Gst.ElementFactory.make("rtmpsink", "sink")
 
         print("Creating pipeline...")
         self.pipeline = Gst.Pipeline.new("rtmp-pipeline")
 
-        if (not self.pipeline or not self.rtmp_src or not self.flvdemux
-                or not self.decodebin or not self.videomixer
-                or not self.x264enc or not self.flvmux
-                or not self.rtmpsink):
-            print("Could not create something. Exiting.")
+        if self.pipeline is None:
+            print("Could not create pipeline. Bailing out!")
             sys.exit(1)
 
+        print("Creating objects and adding to pipeline...")
+        # XXX: this does the same as below.
+        #self.pipeline = Gst.parse_launch('rtmpsrc location=rtmp://stream-0-stage.taggedvideo.com/live/mishatest1 ! flvdemux ! decodebin ! videomixer name=mix ! x264enc threads=0 ! flvmux streamable=1 ! rtmpsink location="rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink live=1"')
+        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc", "rtmpsrc0")
         self.rtmp_src.set_property("location", "rtmp://stream-0-stage.taggedvideo.com/live/mishatest1")
-        self.rtmpsink.set_property("location", "rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink")
-        self.flvmux.set_property("streamable", 1)
-        self.x264enc.set_property("threads", 0)
-
-        print("Adding to pipeline")
         self.pipeline.add(self.rtmp_src)
+
+        self.queue = Gst.ElementFactory.make("queue", "queue")
         self.pipeline.add(self.queue)
-        self.pipeline.add(self.decodebin)
-        self.pipeline.add(self.flvmux)
+
+        self.flvdemux = Gst.ElementFactory.make("flvdemux", "flv_demux")
         self.pipeline.add(self.flvdemux)
+
+        self.decodebin = Gst.ElementFactory.make("decodebin", "decodebin")
+        self.pipeline.add(self.decodebin)
+
+        self.videomixer = Gst.ElementFactory.make("videomixer", "mix")
         self.pipeline.add(self.videomixer)
+
+        self.x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
+        self.x264enc.set_property("threads", 0)
         self.pipeline.add(self.x264enc)
+
+        self.flvmux = Gst.ElementFactory.make("flvmux", "flvmux")
+        self.flvmux.set_property("streamable", 1)
+        self.pipeline.add(self.flvmux)
+
+        self.rtmpsink = Gst.ElementFactory.make("rtmpsink", "sink")
+        self.rtmpsink.set_property("location", "rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink")
         self.pipeline.add(self.rtmpsink)
 
         print("Linking elements")
