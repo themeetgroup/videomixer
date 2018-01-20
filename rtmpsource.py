@@ -10,10 +10,14 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 
 class RtmpSource:
     def __init__(self, location, pipeline, videomixer):
+        # RTMP stream location
         self.location = location
+        # GStreamer Pipeline to attach to
         self.pipeline = pipeline
+        # The videomixer to output to
         self.videomixer = videomixer
 
+        # Create and hook up relevant objects
         print("Creating RtmpSource objects")
         # TODO: handle audio pipeline stuff, too
         self.rtmp_src = Gst.ElementFactory.make("rtmpsrc", "rtmpsrc-" + location)

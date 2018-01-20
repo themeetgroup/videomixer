@@ -10,6 +10,9 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 
 
 class Mix:
+    input_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/mishatest1'
+    output_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink'
+
     def __init__(self):
         Gst.init(sys.argv)
 
@@ -36,7 +39,7 @@ class Mix:
         self.pipeline.add(self.flvmux)
 
         self.rtmpsink = Gst.ElementFactory.make("rtmpsink", "sink")
-        self.rtmpsink.set_property("location", "rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink")
+        self.rtmpsink.set_property("location", self.output_test_url)
         self.pipeline.add(self.rtmpsink)
 
         print("Linking elements")
@@ -52,7 +55,7 @@ class Mix:
             print("ERROR: Elements could not be linked.")
             sys.exit(1)
 
-        rtmp_src = rtmpsource.RtmpSource('rtmp://stream-0-stage.taggedvideo.com/live/mishatest1',
+        rtmp_src = rtmpsource.RtmpSource(self.input_test_url,
                                          self.pipeline,
                                          self.videomixer)
 
