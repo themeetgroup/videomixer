@@ -16,24 +16,25 @@ class VideoMixer:
         self.initialize()
 
     # this method blocks until there are no input streams or an error occurs.
+    # TODO: can we make it async?
     def play(self):
         print("Playing...")
         self.pipeline.set_state(Gst.State.PLAYING)
 
         # wait until error or EOS
-        terminate = False
-        bus = self.pipeline.get_bus()
+        self.terminate = False
+        self.bus = self.pipeline.get_bus()
         while True:
             try:
-                msg = bus.timed_pop_filtered(
+                msg = self.bus.timed_pop_filtered(
                     0.5 * Gst.SECOND,
                     Gst.MessageType.ERROR | Gst.MessageType.EOS)
                 if msg:
-                    terminate = True
+                    self.terminate = True
             except KeyboardInterrupt:
-                terminate = True
+                self.terminate = True
 
-            if terminate:
+            if self.terminate:
                 break
 
         print("Terminated loop.")
