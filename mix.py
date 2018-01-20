@@ -11,9 +11,48 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 
 class Mix:
     input_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/mishatest1'
+    input_testpattern_url = 'rtmp://stream-0-stage.taggedvideo.com/live/testpattern'
     output_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink'
 
     def __init__(self):
+        self.initialize()
+        self.create_rtmp_sources()
+        self.play()
+
+    # this method blocks until there are no input streams or an error occurs.
+    def play(self):
+        print("Playing...")
+        self.pipeline.set_state(Gst.State.PLAYING)
+
+        # wait until error or EOS
+        terminate = False
+        bus = self.pipeline.get_bus()
+        while True:
+            try:
+                msg = bus.timed_pop_filtered(
+                    0.5 * Gst.SECOND,
+                    Gst.MessageType.ERROR | Gst.MessageType.EOS)
+                if msg:
+                    terminate = True
+            except KeyboardInterrupt:
+                terminate = True
+
+            if terminate:
+                break
+
+        print("Terminated loop.")
+        self.pipeline.set_state(Gst.State.NULL)
+
+    def create_rtmp_sources(self):
+        rtmp_src = rtmpsource.RtmpSource(self.input_test_url,
+                                             self.pipeline,
+                                             self.videomixer)
+
+        rtmp_src2 = rtmpsource.RtmpSource(self.input_testpattern_url,
+                                              self.pipeline,
+                                              self.videomixer)
+
+    def initialize(self):
         Gst.init(sys.argv)
 
         print("Creating pipeline...")
@@ -24,9 +63,6 @@ class Mix:
             sys.exit(1)
 
         print("Creating objects and adding to pipeline...")
-        # XXX: this does the same as below.
-        #self.pipeline = Gst.parse_launch('rtmpsrc location=rtmp://stream-0-stage.taggedvideo.com/live/mishatest1 ! flvdemux ! decodebin ! videomixer name=mix ! x264enc threads=0 ! flvmux streamable=1 ! rtmpsink location="rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink live=1"')
-
         self.videomixer = Gst.ElementFactory.make("videomixer", "mix")
         self.pipeline.add(self.videomixer)
 
@@ -54,34 +90,6 @@ class Mix:
         if not ret:
             print("ERROR: Elements could not be linked.")
             sys.exit(1)
-
-        rtmp_src = rtmpsource.RtmpSource(self.input_test_url,
-                                         self.pipeline,
-                                         self.videomixer)
-
-        rtmp_src2 = rtmpsource.RtmpSource('rtmp://stream-0-stage.taggedvideo.com/live/testpattern', self.pipeline, self.videomixer)
-
-        print("Playing...")
-        self.pipeline.set_state(Gst.State.PLAYING)
-
-        # wait until error or EOS
-        terminate = False
-        bus = self.pipeline.get_bus()
-        while True:
-            try:
-                msg = bus.timed_pop_filtered(
-                    0.5 * Gst.SECOND,
-                    Gst.MessageType.ERROR | Gst.MessageType.EOS)
-                if msg:
-                    terminate = True
-            except KeyboardInterrupt:
-                terminate = True
-
-            if terminate:
-                break
-
-        print("Terminated loop.")
-        self.pipeline.set_state(Gst.State.NULL)
 
 
 start=Mix()

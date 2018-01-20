@@ -17,11 +17,14 @@ class RtmpSource:
         # The videomixer to output to
         self.videomixer = videomixer
 
+        self.initialize()
+
+    def initialize(self):
         # Create and hook up relevant objects
         print("Creating RtmpSource objects")
         # TODO: handle audio pipeline stuff, too
-        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc", "rtmpsrc-" + location)
-        self.rtmp_src.set_property("location", location)
+        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc", "rtmpsrc-" + self.location)
+        self.rtmp_src.set_property("location", self.location)
         self.pipeline.add(self.rtmp_src)
 
         self.queue = Gst.ElementFactory.make("queue")
@@ -40,7 +43,7 @@ class RtmpSource:
 
         if not ret:
             print("ERROR: Elements could not be linked.")
-            sys.exit(1)
+            raise Exception("Could not link elements in RtmpSource")
 
         # flvdemux should get audio and video pads from the rtmp_src.
         # We cannot link the flvdemux module to decodebin. We must link it
