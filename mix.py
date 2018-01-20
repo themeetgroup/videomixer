@@ -20,6 +20,7 @@ class Mix:
 
         print("Creating a videomixer...")
         videomix = videomixer.VideoMixer(self.output_test_url)
+        # TODO: add support for specifying coordinate offset
         videomix.add_rtmp_source(self.input_test_url)
         videomix.add_rtmp_source(self.input_testpattern_url)
         videomix.play()

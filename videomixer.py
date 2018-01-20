@@ -44,16 +44,6 @@ class VideoMixer:
         rtmp_src = rtmpsource.RtmpSource(location,
                                          self.pipeline,
                                          self.videomixer)
-
-    def create_rtmp_sources(self):
-        rtmp_src = rtmpsource.RtmpSource(self.input_test_url,
-                                         self.pipeline,
-                                         self.videomixer)
-
-        rtmp_src2 = rtmpsource.RtmpSource(self.input_testpattern_url,
-                                          self.pipeline,
-                                          self.videomixer)
-
     def initialize(self):
         print("Creating pipeline...")
         self.pipeline = Gst.Pipeline.new("rtmp-pipeline")
