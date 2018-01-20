@@ -45,12 +45,12 @@ class Mix:
 
     def create_rtmp_sources(self):
         rtmp_src = rtmpsource.RtmpSource(self.input_test_url,
-                                             self.pipeline,
-                                             self.videomixer)
+                                         self.pipeline,
+                                         self.videomixer)
 
         rtmp_src2 = rtmpsource.RtmpSource(self.input_testpattern_url,
-                                              self.pipeline,
-                                              self.videomixer)
+                                          self.pipeline,
+                                          self.videomixer)
 
     def initialize(self):
         Gst.init(sys.argv)
@@ -92,5 +92,5 @@ class Mix:
             sys.exit(1)
 
 
-start=Mix()
+start = Mix()
 Gtk.main()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import sys
 import gi
 gi.require_version('Gst', '1.0')
@@ -23,7 +22,8 @@ class RtmpSource:
         # Create and hook up relevant objects
         print("Creating RtmpSource objects")
         # TODO: handle audio pipeline stuff, too
-        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc", "rtmpsrc-" + self.location)
+        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc",
+                                                "rtmpsrc-" + self.location)
         self.rtmp_src.set_property("location", self.location)
         self.pipeline.add(self.rtmp_src)
 
@@ -35,7 +35,7 @@ class RtmpSource:
 
         self.decodebin = Gst.ElementFactory.make("decodebin")
         self.pipeline.add(self.decodebin)
-        
+
         # Link the RTMP source to a queue
         ret = self.rtmp_src.link(self.queue)
         # Link the queue to an FLV demuxer
@@ -69,19 +69,19 @@ class RtmpSource:
         if new_pad_type.startswith("audio"):
             print("Got audio pad. Not currently handling it.")
             return
-        elif new_pad_type.startswith("video/x-h264"):
+        elif new_pad_type.startswith("video"):
             print("Got video pad")
             sink_pad = self.decodebin.get_static_pad("sink")
         else:
-            print(
-                "It has type '{0:s}' which is not raw audio/video. Ignoring.".format(new_pad_type))
+            print("Type '{0:s}' which is not audio/video. Ignoring.".format(
+                new_pad_type))
             return
 
         if sink_pad is None:
             print("No sink_pad defined. Bailing out.")
             return
 
-        if (sink_pad.is_linked()):
+        if sink_pad.is_linked():
             print("sink_pad is already linked")
             return
 
@@ -92,8 +92,8 @@ class RtmpSource:
 
         print("Linked {0:s} pad".format(new_pad.get_name()))
 
-        # Next we listen for the "src_0" pad to appear from decodebin, so we can hook it up
-        # to the videomixer component.
+        # Next we listen for the "src_0" pad to appear from decodebin, so
+        # we can hook it up to the videomixer component.
         self.decodebin.connect("pad-added", self.on_decode_pad_added)
 
     def on_decode_pad_added(self, src, new_pad):
@@ -103,11 +103,11 @@ class RtmpSource:
                 src.get_name()))
 
         # Get a sink pad and link it
-        videomixer_sink_pad_template = self.videomixer.get_pad_template("sink_%u")
-        videomixer_sink = self.videomixer.request_pad(videomixer_sink_pad_template, None, None)
+        sink_pad_template = self.videomixer.get_pad_template("sink_%u")
+        sink = self.videomixer.request_pad(sink_pad_template, None, None)
 
-        if (videomixer_sink is None):
+        if (sink is None):
             print("Could not get videomixer sink!")
             return
 
-        new_pad.link(videomixer_sink)
+        new_pad.link(sink)
