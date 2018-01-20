@@ -8,13 +8,17 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 
 
 class RtmpSource:
-    def __init__(self, location, pipeline, videomixer):
+    def __init__(self, location, pipeline, videomixer, top, left, alpha=1.0):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
         self.pipeline = pipeline
         # The videomixer to output to
         self.videomixer = videomixer
+
+        self.top = top
+        self.left = left
+        self.alpha = alpha
 
         self.initialize()
 
