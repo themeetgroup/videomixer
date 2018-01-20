@@ -21,8 +21,8 @@ class Mix:
         print("Creating a videomixer...")
         videomix = videomixer.VideoMixer(self.output_test_url)
         videomix.add_rtmp_source(self.input_testpattern_url, 0, 0)
-        videomix.add_rtmp_source(self.input_test_url, -20, -540)
-        videomix.add_rtmp_source(self.input_test_url, -20, -20)
+        videomix.add_rtmp_source(self.input_test_url, 20, 20)
+        videomix.add_rtmp_source(self.input_test_url, 20, 240)
         videomix.play()
 
 
