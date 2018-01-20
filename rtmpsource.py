@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import sys
 import gi
 gi.require_version('Gst', '1.0')
@@ -26,8 +27,7 @@ class RtmpSource:
         # Create and hook up relevant objects
         print("Creating RtmpSource objects")
         # TODO: handle audio pipeline stuff, too
-        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc",
-                                                "rtmpsrc-" + self.location)
+        self.rtmp_src = Gst.ElementFactory.make("rtmpsrc")
         self.rtmp_src.set_property("location", self.location)
         self.pipeline.add(self.rtmp_src)
 
@@ -35,27 +35,35 @@ class RtmpSource:
         self.pipeline.add(self.queue)
 
         self.flvdemux = Gst.ElementFactory.make("flvdemux")
+        self.flvdemux.connect("pad-added", self.on_flvdemux_pad_added)
         self.pipeline.add(self.flvdemux)
 
         self.decodebin = Gst.ElementFactory.make("decodebin")
+        self.decodebin.connect("pad-added", self.on_decode_pad_added)
         self.pipeline.add(self.decodebin)
+
+        self.videobox = Gst.ElementFactory.make("videobox")
+        self.videobox.set_property("alpha", self.alpha)
+        self.videobox.set_property("left", self.left)
+        self.videobox.set_property("top", self.top)
+        self.pipeline.add(self.videobox)
 
         # Link the RTMP source to a queue
         ret = self.rtmp_src.link(self.queue)
         # Link the queue to an FLV demuxer
         ret = ret and self.queue.link(self.flvdemux)
+        # flvdemux should get audio and video pads from the rtmp_src.
+        # We cannot link the flvdemux module to decodebin. We must link it
+        # dynamically once the pads appear.
+        # We cannot link decodebin to videobox, either. We must link it
+        # dynamically, after flvdemux is dynamically linked to decodebin and
+        # the pad appears in decodebin.
+        # Link the videobox output to the videomixer
+        ret = ret and self.videobox.link(self.videomixer)
 
         if not ret:
             print("ERROR: Elements could not be linked.")
             raise Exception("Could not link elements in RtmpSource")
-
-        # flvdemux should get audio and video pads from the rtmp_src.
-        # We cannot link the flvdemux module to decodebin. We must link it
-        # dynamically once the pads appear.
-        # We cannot link decodebin to videomixer, either. We must link it
-        # dynamically, after flvdemux is dynamically linked to decodebin and
-        # the pad appears in decodebin.
-        self.flvdemux.connect('pad-added', self.on_flvdemux_pad_added)
 
     def on_flvdemux_pad_added(self, src, new_pad):
         # TODO: handle linking audio, too.
@@ -96,9 +104,6 @@ class RtmpSource:
 
         print("Linked {0:s} pad".format(new_pad.get_name()))
 
-        # Next we listen for the "src_0" pad to appear from decodebin, so
-        # we can hook it up to the videomixer component.
-        self.decodebin.connect("pad-added", self.on_decode_pad_added)
 
     def on_decode_pad_added(self, src, new_pad):
         print(
@@ -107,11 +112,14 @@ class RtmpSource:
                 src.get_name()))
 
         # Get a sink pad and link it
-        sink_pad_template = self.videomixer.get_pad_template("sink_%u")
-        sink = self.videomixer.request_pad(sink_pad_template, None, None)
+        sink = self.videobox.get_static_pad("sink")
 
         if (sink is None):
-            print("Could not get videomixer sink!")
+            print("Could not get videobox sink!")
             return
 
-        new_pad.link(sink)
+        ret = new_pad.link(sink)
+
+        if ret is None:
+            print("Could not hook up new pad to videobox and sink")
+            raise Exception("Failed to hook up decodebin to videobox/videomixer")

@@ -40,10 +40,11 @@ class VideoMixer:
         print("Terminated loop.")
         self.pipeline.set_state(Gst.State.NULL)
 
-    def add_rtmp_source(self, location):
+    def add_rtmp_source(self, location, top, left, alpha=1.0):
         rtmp_src = rtmpsource.RtmpSource(location,
                                          self.pipeline,
-                                         self.videomixer)
+                                         self.videomixer,
+                                         top, left, alpha)
     def initialize(self):
         print("Creating pipeline...")
         self.pipeline = Gst.Pipeline.new("rtmp-pipeline")
@@ -79,4 +80,5 @@ class VideoMixer:
 
         if not ret:
             print("ERROR: Elements could not be linked.")
-            sys.exit(1)
+            raise Exception("Could not link elements in videomixer")
+
