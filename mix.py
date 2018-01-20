@@ -24,6 +24,6 @@ class Mix:
         videomix.add_rtmp_source(self.input_testpattern_url)
         videomix.play()
 
+
 start = Mix()
 Gtk.main()
-
