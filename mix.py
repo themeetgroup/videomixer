@@ -59,6 +59,8 @@ class Mix:
                                          self.pipeline,
                                          self.videomixer)
 
+        rtmp_src2 = rtmpsource.RtmpSource('rtmp://stream-0-stage.taggedvideo.com/live/testpattern', self.pipeline, self.videomixer)
+
         print("Playing...")
         self.pipeline.set_state(Gst.State.PLAYING)
 

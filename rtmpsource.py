@@ -24,13 +24,13 @@ class RtmpSource:
         self.rtmp_src.set_property("location", location)
         self.pipeline.add(self.rtmp_src)
 
-        self.queue = Gst.ElementFactory.make("queue", "queue")
+        self.queue = Gst.ElementFactory.make("queue")
         self.pipeline.add(self.queue)
 
-        self.flvdemux = Gst.ElementFactory.make("flvdemux", "flv_demux")
+        self.flvdemux = Gst.ElementFactory.make("flvdemux")
         self.pipeline.add(self.flvdemux)
 
-        self.decodebin = Gst.ElementFactory.make("decodebin", "decodebin")
+        self.decodebin = Gst.ElementFactory.make("decodebin")
         self.pipeline.add(self.decodebin)
         
         # Link the RTMP source to a queue
