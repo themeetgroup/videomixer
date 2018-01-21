@@ -121,5 +121,5 @@ class RtmpSource:
         ret = new_pad.link(sink)
 
         if ret is None:
-            print("Could not hook up new pad to videobox and sink")
-            raise Exception("Failed to hook up decodebin to videobox/videomixer")
+            print("Could not hook up new pad to videobox sink")
+            raise Exception("Failed to hook up decode sink to videobox")
