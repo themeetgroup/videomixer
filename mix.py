@@ -22,7 +22,7 @@ class Mix:
         videomix = videomixer.VideoMixer(self.output_test_url)
         videomix.add_rtmp_source(self.input_testpattern_url, 0, 0, 2)
         videomix.add_rtmp_source(self.input_test_url, 20, 20, 10)
-        videomix.add_rtmp_source(self.input_test_url, 20, 440, 30)
+        videomix.add_rtmp_source(self.input_test_url, 440, 20, 30)
         videomix.play()
 
 
@@ -31,4 +31,3 @@ Gtk.main()
 # asyncio -- preferred. transforms async event driven code into seq code.
 #            explicit async boundaries. non-blocking i/o server.
 # idle add (Gtk) -- post to main loop using g_idle_add ?
-

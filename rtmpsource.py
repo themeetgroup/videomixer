@@ -9,7 +9,7 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 
 
 class RtmpSource:
-    def __init__(self, location, pipeline, videomixer, top, left, zorder):
+    def __init__(self, location, pipeline, videomixer, xpos, ypos, zorder):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
@@ -17,8 +17,8 @@ class RtmpSource:
         # The videomixer to output to
         self.videomixer = videomixer
 
-        self.top = top
-        self.left = left
+        self.xpos = xpos
+        self.ypos = ypos
         self.zorder = zorder
 
         self.initialize()
@@ -116,9 +116,9 @@ class RtmpSource:
             return
 
         # Set the sink position if applicable
-        if (self.left > 0 and self.top > 0):
-            sink.set_property("xpos", self.left)
-            sink.set_property("ypos", self.top)
+        if (self.xpos > 0 and self.ypos > 0):
+            sink.set_property("xpos", self.xpos)
+            sink.set_property("ypos", self.ypos)
 
         # Set zorder (z-index)
         sink.set_property("zorder", self.zorder)
@@ -129,3 +129,14 @@ class RtmpSource:
         if ret is None:
             print("Could not hook up new pad to videomixer sink")
             raise Exception("Failed to hook up decode sink to videomixer")
+
+        self.videomixer_sink = sink
+
+    def set_position(self, xpos, ypos, zorder):
+        self.xpos = xpos
+        self.ypos = ypos
+        self.zorder = zorder
+
+        self.videomixer_sink.set_property("xpos", self.xpos)
+        self.videomixer_sink.set_property("ypos", self.ypos)
+        self.videomixer_sink.set_property("zorder", self.zorder)

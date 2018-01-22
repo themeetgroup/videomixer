@@ -40,11 +40,11 @@ class VideoMixer:
         print("Terminated loop.")
         self.pipeline.set_state(Gst.State.NULL)
 
-    def add_rtmp_source(self, location, top, left, zorder=1):
+    def add_rtmp_source(self, location, xpos, ypos, zorder=1):
         rtmp_src = rtmpsource.RtmpSource(location,
                                          self.pipeline,
                                          self.videomixer,
-                                         top, left, zorder)
+                                         xpos, ypos, zorder)
     def initialize(self):
         print("Creating pipeline...")
         self.pipeline = Gst.Pipeline.new("rtmp-pipeline")
