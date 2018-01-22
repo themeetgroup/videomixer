@@ -16,6 +16,8 @@ class RtmpSource:
         self.pipeline = pipeline
         # The videomixer to output to
         self.videomixer = videomixer
+        # Not ready.
+        self.videomixer_sink = None
 
         self.xpos = xpos
         self.ypos = ypos
@@ -103,9 +105,9 @@ class RtmpSource:
                 new_pad.get_name(),
                 src.get_name()))
 
-        videoPadCapabilities = new_pad.get_current_caps()
-        (ok, videoWidth) = videoPadCapabilities.get_structure(0).get_int("width")
-        (ok, videoHeight) = videoPadCapabilities.get_structure(0).get_int("height")
+        video_pad_caps = new_pad.get_current_caps()
+        (ok, self.video_width) = video_pad_caps.get_structure(0).get_int("width")
+        (ok, self.video_height) = video_pad_caps.get_structure(0).get_int("height")
 
         # Get a sink pad from the mixer
         pad_template = self.videomixer.get_pad_template("sink_%u")
@@ -136,6 +138,21 @@ class RtmpSource:
         self.xpos = xpos
         self.ypos = ypos
         self.zorder = zorder
+
+        self.videomixer_sink.set_property("xpos", self.xpos)
+        self.videomixer_sink.set_property("ypos", self.ypos)
+        self.videomixer_sink.set_property("zorder", self.zorder)
+
+    def move(self, xdiff, ydiff, zdiff=0):
+        if self.videomixer_sink is None:
+            return
+
+        # XXX: magic numbers
+        self.xpos += xdiff;
+        self.xpos %= 1280
+        self.ypos += ydiff;
+        self.ypos %= 720
+        self.zorder += zdiff
 
         self.videomixer_sink.set_property("xpos", self.xpos)
         self.videomixer_sink.set_property("ypos", self.ypos)

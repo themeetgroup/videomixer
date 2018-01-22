@@ -13,6 +13,7 @@ class VideoMixer:
 
     def __init__(self, output_url):
         self.output_url = output_url
+        self.moving_videos = []
         self.initialize()
 
     # this method blocks until there are no input streams or an error occurs.
@@ -26,11 +27,16 @@ class VideoMixer:
         self.bus = self.pipeline.get_bus()
         while True:
             try:
-                msg = self.bus.timed_pop_filtered(
-                    0.5 * Gst.SECOND,
-                    Gst.MessageType.ERROR | Gst.MessageType.EOS)
-                if msg:
+                msg = self.bus.timed_pop(
+                    0.5 * Gst.SECOND)
+                if (msg is not None and
+                    (msg.type == Gst.MessageType.ERROR or
+                         msg.type == Gst.MessageType.EOS)):
                     self.terminate = True
+                else:
+                    # XXX: hackery.
+                    for moving_video in self.moving_videos:
+                        moving_video.move(4, 0, 1)
             except KeyboardInterrupt:
                 self.terminate = True
 
@@ -40,11 +46,14 @@ class VideoMixer:
         print("Terminated loop.")
         self.pipeline.set_state(Gst.State.NULL)
 
-    def add_rtmp_source(self, location, xpos, ypos, zorder=1):
+    def add_rtmp_source(self, location, xpos, ypos, zorder=1, moving=False):
         rtmp_src = rtmpsource.RtmpSource(location,
                                          self.pipeline,
                                          self.videomixer,
                                          xpos, ypos, zorder)
+        if moving is True:
+            self.moving_videos.append(rtmp_src)
+
     def initialize(self):
         print("Creating pipeline...")
         self.pipeline = Gst.Pipeline.new("rtmp-pipeline")
