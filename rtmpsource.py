@@ -126,7 +126,7 @@ class RtmpSource:
         # Get the sink for the videoscale module and the "src" (output) from the
         # capsfilter module.
         scale_sink = self.videoscale.get_static_pad("sink")
-        scale_src = self.capsfilter.get_static_pad("src")
+        filter_src = self.capsfilter.get_static_pad("src")
 
         # Get a sink pad from the videomixer
         pad_template = self.videomixer.get_pad_template("sink_%u")
@@ -136,18 +136,18 @@ class RtmpSource:
             print("Could not get videomixer sink!")
             return
 
-        # Set the sink position if applicable
-        if (self.xpos > 0 and self.ypos > 0):
-            sink.set_property("xpos", self.xpos)
-            sink.set_property("ypos", self.ypos)
-
+        # Set the sink position
+        sink.set_property("xpos", self.xpos)
+        sink.set_property("ypos", self.ypos)
         # Set zorder (z-index)
         sink.set_property("zorder", self.zorder)
 
         # Link the decoder pad to the videoscale sink
+        # The videoscale module is hooked up to the capsfilter
+        # module already.
         ret = new_pad.link(scale_sink)
         # Link the capsfilter src to the videomixer sink
-        scale_src.link(sink)
+        filter_src.link(sink)
 
         if ret is None:
             print("Could not hook up new pad to videomixer sink")
@@ -169,11 +169,10 @@ class RtmpSource:
         if self.is_live is False:
             return
 
-        # XXX: magic numbers
         self.xpos += xdiff;
-        self.xpos %= 1280
+        self.xpos %= self.video_width
         self.ypos += ydiff;
-        self.ypos %= 720
+        self.ypos %= self.video_height
         self.zorder += zdiff
 
         self.videomixer_sink.set_property("xpos", self.xpos)

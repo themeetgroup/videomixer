@@ -2,6 +2,7 @@
 
 import asyncio
 import gbulb
+from aiohttp import web
 import sys
 import gi
 gi.require_version('Gst', '1.0')
@@ -17,6 +18,15 @@ class Mix:
     input_testpattern_url = 'rtmp://stream-0-stage.taggedvideo.com/live/testpattern'
     output_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink'
 
+    async def resize_handler(self, request):
+        print(request)
+        return web.Response(text="Hello")
+
+    def make_app(self):
+        app = web.Application()
+        app.router.add_route('GET', '/resize', self.resize_handler)
+        return app
+
     def __init__(self):
         Gst.init(sys.argv)
 
@@ -29,22 +39,20 @@ class Mix:
         self.video2 = self.videomix.add_rtmp_source(self.input_test_url2, 440, 20, 30, 180, 320)
         self.focus = False
 
+        ## XXX: hackery, remove.
         GLib.timeout_add(5000, self.move_videos)
 
-        gbulb.install()
         self.play()
-        server = asyncio.start_server(self.client_connected_handler, 'localhost', 8888)
-        asyncio.get_event_loop().run_until_complete(server)
-        asyncio.get_event_loop().run_forever()
 
-    @asyncio.coroutine
-    def client_connected_handler(self, client_reader, client_writer):
-        print("Connection received")
-        # testing -- handle some kind of protocol here instead.
-        # this is just proof that it works.
-        self.video1.resize(180, 320)
-        client_writer.write(b"Hello\r\n")
-        client_writer.close()
+        gbulb.install()
+        loop = asyncio.get_event_loop()
+
+        self.webapp = self.make_app()
+        handler = self.webapp.make_handler()
+        web_server = loop.create_server(handler, '0.0.0.0', 8888)
+
+        loop.run_until_complete(web_server)
+        loop.run_forever()
 
     def play(self):
         if self.started is False:
