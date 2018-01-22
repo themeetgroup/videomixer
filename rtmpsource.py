@@ -51,7 +51,7 @@ class RtmpSource:
         self.pipeline.add(self.videoscale)
 
         self.capsfilter = Gst.ElementFactory.make("capsfilter")
-        self.vidcaps = Gst.Caps.from_string("video/x-raw,width={},height={}".format(self.width, self.height))
+        self.vidcaps = Gst.Caps.from_string(self.get_caps_string(self.width, self.height))
         self.capsfilter.set_property("caps", self.vidcaps)
         self.pipeline.add(self.capsfilter)
 
@@ -123,10 +123,12 @@ class RtmpSource:
         (ok, self.video_width) = video_pad_caps.get_structure(0).get_int("width")
         (ok, self.video_height) = video_pad_caps.get_structure(0).get_int("height")
 
+        # Get the sink for the videoscale module and the "src" (output) from the
+        # capsfilter module.
         scale_sink = self.videoscale.get_static_pad("sink")
         scale_src = self.capsfilter.get_static_pad("src")
 
-        # Get a sink pad from the mixer
+        # Get a sink pad from the videomixer
         pad_template = self.videomixer.get_pad_template("sink_%u")
         sink = self.videomixer.request_pad(pad_template, None, None)
 
@@ -142,8 +144,9 @@ class RtmpSource:
         # Set zorder (z-index)
         sink.set_property("zorder", self.zorder)
 
-        # Link the video to the videomixer sink
+        # Link the decoder pad to the videoscale sink
         ret = new_pad.link(scale_sink)
+        # Link the capsfilter src to the videomixer sink
         scale_src.link(sink)
 
         if ret is None:
@@ -181,8 +184,11 @@ class RtmpSource:
         if self.is_live is False:
             return
 
-        caps = Gst.Caps.from_string("video/x-raw,width={},height={}".format(width, height))
+        caps = Gst.Caps.from_string(self.get_caps_string(width, height))
         self.capsfilter.set_property("caps", caps)
+
+    def get_caps_string(self, width, height):
+        return "video/x-raw,width={},height={}".format(width, height)
 
     def is_live(self):
         return self.is_live
