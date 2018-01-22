@@ -40,6 +40,9 @@ class Mix:
     @asyncio.coroutine
     def client_connected_handler(self, client_reader, client_writer):
         print("Connection received")
+        # testing -- handle some kind of protocol here instead.
+        # this is just proof that it works.
+        self.video1.resize(180, 320)
         client_writer.write(b"Hello\r\n")
         client_writer.close()
 
