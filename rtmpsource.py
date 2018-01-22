@@ -9,7 +9,7 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 
 
 class RtmpSource:
-    def __init__(self, location, pipeline, videomixer, xpos, ypos, zorder):
+    def __init__(self, location, pipeline, videomixer, xpos, ypos, zorder, width, height):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
@@ -22,6 +22,10 @@ class RtmpSource:
         self.xpos = xpos
         self.ypos = ypos
         self.zorder = zorder
+        self.width = width
+        self.height = height
+
+        self.is_live = False
 
         self.initialize()
 
@@ -44,10 +48,21 @@ class RtmpSource:
         self.decodebin.connect("pad-added", self.on_decode_pad_added)
         self.pipeline.add(self.decodebin)
 
+        self.videoscale = Gst.ElementFactory.make("videoscale")
+        self.pipeline.add(self.videoscale)
+
+        self.capsfilter = Gst.ElementFactory.make("capsfilter")
+        self.vidcaps = Gst.Caps.from_string("video/x-raw,width={},height={}".format(self.width, self.height))
+        self.capsfilter.set_property("caps", self.vidcaps)
+        self.pipeline.add(self.capsfilter)
+
         # Link the RTMP source to a queue
         ret = self.rtmp_src.link(self.queue)
         # Link the queue to an FLV demuxer
         ret = ret and self.queue.link(self.flvdemux)
+
+        ret = ret and self.videoscale.link(self.capsfilter)
+        #ret = ret and self.capsfilter.link(self.videomixer)
         # flvdemux should get audio and video pads from the rtmp_src.
         # We cannot link the flvdemux module to decodebin. We must link it
         # dynamically once the pads appear.
@@ -109,6 +124,9 @@ class RtmpSource:
         (ok, self.video_width) = video_pad_caps.get_structure(0).get_int("width")
         (ok, self.video_height) = video_pad_caps.get_structure(0).get_int("height")
 
+        scale_sink = self.videoscale.get_static_pad("sink")
+        scale_src = self.capsfilter.get_static_pad("src")
+
         # Get a sink pad from the mixer
         pad_template = self.videomixer.get_pad_template("sink_%u")
         sink = self.videomixer.request_pad(pad_template, None, None)
@@ -126,13 +144,15 @@ class RtmpSource:
         sink.set_property("zorder", self.zorder)
 
         # Link the video to the videomixer sink
-        ret = new_pad.link(sink)
+        ret = new_pad.link(scale_sink)
+        scale_src.link(sink)
 
         if ret is None:
             print("Could not hook up new pad to videomixer sink")
             raise Exception("Failed to hook up decode sink to videomixer")
 
         self.videomixer_sink = sink
+        self.is_live = True
 
     def set_position(self, xpos, ypos, zorder):
         self.xpos = xpos
@@ -144,7 +164,7 @@ class RtmpSource:
         self.videomixer_sink.set_property("zorder", self.zorder)
 
     def move(self, xdiff, ydiff, zdiff=0):
-        if self.videomixer_sink is None:
+        if self.is_live is False:
             return
 
         # XXX: magic numbers
@@ -157,3 +177,14 @@ class RtmpSource:
         self.videomixer_sink.set_property("xpos", self.xpos)
         self.videomixer_sink.set_property("ypos", self.ypos)
         self.videomixer_sink.set_property("zorder", self.zorder)
+
+    def resize(self, width, height):
+        if self.is_live is False:
+            return
+
+        caps = Gst.Caps.from_string("video/x-raw,width={},height={}".format(width, height))
+        print(caps)
+        self.capsfilter.set_property("caps", caps)
+
+    def is_live(self):
+        return self.is_live

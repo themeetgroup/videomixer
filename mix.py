@@ -22,9 +22,10 @@ class Mix:
 
         print("Creating a videomixer...")
         self.videomix = videomixer.VideoMixer(self.output_test_url)
-        self.videomix.add_rtmp_source(self.input_testpattern_url, 0, 0, 2)
-        self.videomix.add_rtmp_source(self.input_test_url, 20, 20, 10, True)
-        self.videomix.add_rtmp_source(self.input_test_url, 440, 20, 30, True)
+        self.bg = self.videomix.add_rtmp_source(self.input_testpattern_url, 0, 0, 2, 1280, 720)
+        self.video1 = self.videomix.add_rtmp_source(self.input_test_url, 20, 20, 10, 360, 640)
+        self.video2 = self.videomix.add_rtmp_source(self.input_test_url, 440, 20, 30, 180, 320)
+        self.focus = False
 
     def play(self):
         if self.started is False:
@@ -33,12 +34,22 @@ class Mix:
             return True
         return False
 
+    def move_videos(self):
+        self.video1.move(40, 0)
+        self.video2.move(40, 0)
+        if self.focus is False:
+            self.video1.resize(180, 320)
+            self.video2.resize(360, 640)
+            self.focus = True
+        else:
+            self.video1.resize(360, 640)
+            self.video2.resize(180, 320)
+            self.focus = False
+        return True
 
 start = Mix()
-#print("Creating idle callback")
-#GLib.timeout_add(1000, start.update_timer)
+GLib.timeout_add(5000, start.move_videos)
 start.play()
-# XXX: above blocks so we never enter Gtk.main()
 Gtk.main()
 # asyncio -- preferred. transforms async event driven code into seq code.
 #            explicit async boundaries. non-blocking i/o server.
