@@ -37,8 +37,8 @@ class RtmpSource:
         self.rtmp_src.set_property("location", self.location)
         self.pipeline.add(self.rtmp_src)
 
-        self.queue = Gst.ElementFactory.make("queue")
-        self.pipeline.add(self.queue)
+        #self.queue = Gst.ElementFactory.make("queue")
+        #self.pipeline.add(self.queue)
 
         self.flvdemux = Gst.ElementFactory.make("flvdemux")
         self.flvdemux.connect("pad-added", self.on_flvdemux_pad_added)
@@ -57,9 +57,9 @@ class RtmpSource:
         self.pipeline.add(self.capsfilter)
 
         # Link the RTMP source to a queue
-        ret = self.rtmp_src.link(self.queue)
+        ret = self.rtmp_src.link(self.flvdemux)
         # Link the queue to an FLV demuxer
-        ret = ret and self.queue.link(self.flvdemux)
+        #ret = ret and self.queue.link(self.flvdemux)
 
         ret = ret and self.videoscale.link(self.capsfilter)
         #ret = ret and self.capsfilter.link(self.videomixer)
