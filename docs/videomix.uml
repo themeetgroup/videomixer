@@ -1,0 +1,26 @@
+@startuml
+
+package RtmpSource {
+ node rtmpsrc
+ node flvdemux
+ node decodebin
+ node videoscale
+ node capsfilter
+}
+
+node videomixer
+node x264enc
+node flvmux
+node rtmpsink
+
+rtmpsrc -> flvdemux
+flvdemux -> decodebin
+decodebin -> videoscale
+videoscale -> capsfilter
+capsfilter -> videomixer
+
+videomixer -> x264enc
+x264enc -> flvmux
+flvmux -> rtmpsink
+
+@enduml
