@@ -8,7 +8,8 @@ from gi.repository import GObject, Gst, GstBase, GObject
 
 
 class RtmpSource:
-    def __init__(self, location, pipeline, videomixer, xpos, ypos, zorder, width, height):
+    def __init__(self, location, pipeline, videomixer,
+                 xpos, ypos, zorder, width, height):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
@@ -36,9 +37,6 @@ class RtmpSource:
         self.rtmp_src.set_property("location", self.location)
         self.pipeline.add(self.rtmp_src)
 
-        #self.queue = Gst.ElementFactory.make("queue")
-        #self.pipeline.add(self.queue)
-
         self.flvdemux = Gst.ElementFactory.make("flvdemux")
         self.flvdemux.connect("pad-added", self.on_flvdemux_pad_added)
         self.pipeline.add(self.flvdemux)
@@ -51,17 +49,17 @@ class RtmpSource:
         self.pipeline.add(self.videoscale)
 
         self.capsfilter = Gst.ElementFactory.make("capsfilter")
-        self.vidcaps = Gst.Caps.from_string(self.get_caps_string(self.width, self.height))
+        caps_string = self.get_caps_string(self.width, self.height)
+        self.vidcaps = Gst.Caps.from_string(caps_string)
         self.capsfilter.set_property("caps", self.vidcaps)
         self.pipeline.add(self.capsfilter)
 
-        # Link the RTMP source to a queue
+        # Link the RTMP source to the FLV demuxer
         ret = self.rtmp_src.link(self.flvdemux)
-        # Link the queue to an FLV demuxer
-        #ret = ret and self.queue.link(self.flvdemux)
 
+        # Link the videoscaler to the capsfilter
         ret = ret and self.videoscale.link(self.capsfilter)
-        #ret = ret and self.capsfilter.link(self.videomixer)
+
         # flvdemux should get audio and video pads from the rtmp_src.
         # We cannot link the flvdemux module to decodebin. We must link it
         # dynamically once the pads appear.
@@ -112,7 +110,6 @@ class RtmpSource:
 
         print("Linked {0:s} pad".format(new_pad.get_name()))
 
-
     def on_decode_pad_added(self, src, new_pad):
         print(
             "Received new decodebin pad '{0:s}' from '{1:s}'".format(
@@ -120,11 +117,12 @@ class RtmpSource:
                 src.get_name()))
 
         video_pad_caps = new_pad.get_current_caps()
-        (ok, self.video_width) = video_pad_caps.get_structure(0).get_int("width")
-        (ok, self.video_height) = video_pad_caps.get_structure(0).get_int("height")
+        video_pad_caps0 = video_pad_caps.get_structure(0)
+        (ok, self.video_width) = caps0.get_int("width")
+        (ok, self.video_height) = caps0.get_int("height")
 
-        # Get the sink for the videoscale module and the "src" (output) from the
-        # capsfilter module.
+        # Get the sink for the videoscale module and the "src" (output) from
+        # the capsfilter module.
         scale_sink = self.videoscale.get_static_pad("sink")
         filter_src = self.capsfilter.get_static_pad("src")
 
@@ -169,9 +167,9 @@ class RtmpSource:
         if self.is_live is False:
             return
 
-        self.xpos += xdiff;
+        self.xpos += xdiff
         self.xpos %= self.video_width
-        self.ypos += ydiff;
+        self.ypos += ydiff
         self.ypos %= self.video_height
         self.zorder += zdiff
 

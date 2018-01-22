@@ -39,7 +39,7 @@ class Mix:
         self.focus = False
 
         ## XXX: hackery, remove.
-        GLib.timeout_add(5000, self.move_videos)
+        GLib.timeout_add(5000, self.resize_videos)
 
         self.play()
 
@@ -60,9 +60,7 @@ class Mix:
             return True
         return False
 
-    def move_videos(self):
-        #self.video1.move(40, 0)
-        #self.video2.move(40, 0)
+    def resize_videos(self):
         if self.focus is False:
             self.video1.resize(180, 320)
             self.video2.resize(360, 640)
