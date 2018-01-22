@@ -9,7 +9,7 @@ from gi.repository import GObject, Gst, GstBase, Gtk, GObject
 
 
 class RtmpSource:
-    def __init__(self, location, pipeline, videomixer, top, left, alpha=1.0):
+    def __init__(self, location, pipeline, videomixer, top, left, zorder):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
@@ -19,7 +19,7 @@ class RtmpSource:
 
         self.top = top
         self.left = left
-        self.alpha = alpha
+        self.zorder = zorder
 
         self.initialize()
 
@@ -42,12 +42,6 @@ class RtmpSource:
         self.decodebin.connect("pad-added", self.on_decode_pad_added)
         self.pipeline.add(self.decodebin)
 
-        self.videobox = Gst.ElementFactory.make("videobox")
-        self.videobox.set_property("alpha", self.alpha)
-        self.videobox.set_property("left", self.left)
-        self.videobox.set_property("top", self.top)
-        self.pipeline.add(self.videobox)
-
         # Link the RTMP source to a queue
         ret = self.rtmp_src.link(self.queue)
         # Link the queue to an FLV demuxer
@@ -55,11 +49,9 @@ class RtmpSource:
         # flvdemux should get audio and video pads from the rtmp_src.
         # We cannot link the flvdemux module to decodebin. We must link it
         # dynamically once the pads appear.
-        # We cannot link decodebin to videobox, either. We must link it
+        # We cannot link decodebin to videomixer, either. We must link it
         # dynamically, after flvdemux is dynamically linked to decodebin and
         # the pad appears in decodebin.
-        # Link the videobox output to the videomixer
-        ret = ret and self.videobox.link(self.videomixer)
 
         if not ret:
             print("ERROR: Elements could not be linked.")
@@ -111,15 +103,29 @@ class RtmpSource:
                 new_pad.get_name(),
                 src.get_name()))
 
-        # Get a sink pad and link it
-        sink = self.videobox.get_static_pad("sink")
+        videoPadCapabilities = new_pad.get_current_caps()
+        (ok, videoWidth) = videoPadCapabilities.get_structure(0).get_int("width")
+        (ok, videoHeight) = videoPadCapabilities.get_structure(0).get_int("height")
+
+        # Get a sink pad from the mixer
+        pad_template = self.videomixer.get_pad_template("sink_%u")
+        sink = self.videomixer.request_pad(pad_template, None, None)
 
         if (sink is None):
-            print("Could not get videobox sink!")
+            print("Could not get videomixer sink!")
             return
 
+        # Set the sink position if applicable
+        if (self.left > 0 and self.top > 0):
+            sink.set_property("xpos", self.left)
+            sink.set_property("ypos", self.top)
+
+        # Set zorder (z-index)
+        sink.set_property("zorder", self.zorder)
+
+        # Link the video to the videomixer sink
         ret = new_pad.link(sink)
 
         if ret is None:
-            print("Could not hook up new pad to videobox sink")
-            raise Exception("Failed to hook up decode sink to videobox")
+            print("Could not hook up new pad to videomixer sink")
+            raise Exception("Failed to hook up decode sink to videomixer")
