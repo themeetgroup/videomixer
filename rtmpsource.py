@@ -183,7 +183,6 @@ class RtmpSource:
             return
 
         caps = Gst.Caps.from_string("video/x-raw,width={},height={}".format(width, height))
-        print(caps)
         self.capsfilter.set_property("caps", caps)
 
     def is_live(self):
