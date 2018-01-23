@@ -11,6 +11,7 @@ from gi.repository import GObject, Gst, GstBase, GObject
 class VideoMixer:
 
     def __init__(self, output_url):
+        self.sources = {}
         self.output_url = output_url
         self.initialize()
 
@@ -24,12 +25,12 @@ class VideoMixer:
         self.pipeline.set_state(Gst.State.PAUSED)
         return
 
-    def add_rtmp_source(self, location, xpos=0, ypos=0, zorder=0, width=None, height=None):
-        rtmp_src = rtmpsource.RtmpSource(location,
-                                         self.pipeline,
-                                         self.videomixer,
-                                         xpos, ypos, zorder, width, height)
-        return rtmp_src
+    def add_rtmp_source(self, pip_id, location, xpos=0, ypos=0, zorder=0, width=None, height=None):
+        self.sources[pip_id] = rtmpsource.RtmpSource(location,
+                                                     self.pipeline,
+                                                     self.videomixer,
+                                                     xpos, ypos, zorder, width, height)
+        return self.sources[pip_id]
 
     def initialize(self):
         print("Creating pipeline...")
