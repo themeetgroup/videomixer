@@ -20,7 +20,7 @@ class Mix:
         app = web.Application()
         app.router.add_route('POST',   '/resize/{stream_id}/{pip_id}',     self.resize_handler)
         app.router.add_route('POST',   '/move/{stream_id}/{pip_id}',       self.move_handler)
-        app.router.add_route('POST',   '/create/{stream_id}',              self.create_handler)
+        app.router.add_route('PUT',    '/create/{stream_id}',              self.create_handler)
         app.router.add_route('PUT',    '/stream/{stream_id}/{pip_id}',     self.add_stream_handler)
         app.router.add_route('DELETE', '/stream/{stream_id}/{pip_id}',     self.remove_handler)
         app.router.add_route('DELETE', '/delete/{stream_id}',              self.delete_handler)
