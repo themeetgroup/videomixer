@@ -13,6 +13,8 @@ import rtmpsource
 import videomixer
 
 class Mix:
+    bind_addr = '0.0.0.0'
+    listen_port = 8888
 
     def make_app(self):
         app = web.Application()
@@ -95,7 +97,7 @@ class Mix:
 
         self.webapp = self.make_app()
         handler = self.webapp.make_handler()
-        web_server = loop.create_server(handler, '0.0.0.0', 8888)
+        web_server = loop.create_server(handler, self.bind_addr, self.listen_port)
 
         loop.run_until_complete(web_server)
         loop.run_forever()
