@@ -24,7 +24,7 @@ class VideoMixer:
         self.pipeline.set_state(Gst.State.PAUSED)
         return
 
-    def add_rtmp_source(self, location, xpos, ypos, zorder=1, width=None, height=None):
+    def add_rtmp_source(self, location, xpos=0, ypos=0, zorder=0, width=None, height=None):
         rtmp_src = rtmpsource.RtmpSource(location,
                                          self.pipeline,
                                          self.videomixer,

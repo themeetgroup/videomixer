@@ -82,7 +82,7 @@ class Mix:
         self.videomixers[stream_id] = {}
         mixer =  videomixer.VideoMixer(output_uri)
         self.videomixers[stream_id]['mixer'] = mixer
-        self.videomixers[stream_id]['bg'] = mixer.add_rtmp_source(bg_uri, 0, 0, 100)
+        self.videomixers[stream_id]['bg'] = mixer.add_rtmp_source(bg_uri)
         mixer.play()
         return web.Response(text="{'status': 'OK'}")
 
