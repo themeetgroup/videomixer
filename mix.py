@@ -118,7 +118,7 @@ class Mix:
         handler = self.webapp.make_handler()
         web_server = loop.create_server(handler, self.bind_addr, self.listen_port)
 
-        print("Ready!")
+        print("Ready! Listening on {}:{}".format(self.bind_addr, self.listen_port))
         loop.run_until_complete(web_server)
         loop.run_forever()
 
