@@ -34,7 +34,7 @@ class VideoMixer:
 
     def initialize(self):
         print("Creating pipeline...")
-        self.pipeline = Gst.Pipeline.new("rtmp-pipeline")
+        self.pipeline = Gst.Pipeline.new()
 
         if self.pipeline is None:
             print("Could not create pipeline. Bailing out!")
