@@ -18,6 +18,7 @@ class Mix:
 
     def make_app(self):
         app = web.Application()
+        print("Starting API server...")
         app.router.add_route('PUT',    '/stream/{stream_id}',                 self.create_handler)
         app.router.add_route('PUT',    '/stream/{stream_id}/{pip_id}',        self.add_stream_handler)
         # TODO: implement these.
@@ -108,6 +109,7 @@ class Mix:
     def __init__(self):
         Gst.init(sys.argv)
 
+        print("Initializing videomixer application...")
         self.videomixers = {}
         gbulb.install()
         loop = asyncio.get_event_loop()
@@ -116,6 +118,7 @@ class Mix:
         handler = self.webapp.make_handler()
         web_server = loop.create_server(handler, self.bind_addr, self.listen_port)
 
+        print("Ready!")
         loop.run_until_complete(web_server)
         loop.run_forever()
 
