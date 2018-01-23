@@ -41,7 +41,7 @@ class VideoMixer:
             sys.exit(1)
 
         print("Creating objects and adding to pipeline...")
-        self.videomixer = Gst.ElementFactory.make("videomixer"
+        self.videomixer = Gst.ElementFactory.make("videomixer")
         self.pipeline.add(self.videomixer)
 
         self.x264enc = Gst.ElementFactory.make("x264enc")
