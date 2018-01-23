@@ -41,18 +41,18 @@ class VideoMixer:
             sys.exit(1)
 
         print("Creating objects and adding to pipeline...")
-        self.videomixer = Gst.ElementFactory.make("videomixer", "mix")
+        self.videomixer = Gst.ElementFactory.make("videomixer"
         self.pipeline.add(self.videomixer)
 
-        self.x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
+        self.x264enc = Gst.ElementFactory.make("x264enc")
         self.x264enc.set_property("threads", 0)
         self.pipeline.add(self.x264enc)
 
-        self.flvmux = Gst.ElementFactory.make("flvmux", "flvmux")
+        self.flvmux = Gst.ElementFactory.make("flvmux")
         self.flvmux.set_property("streamable", 1)
         self.pipeline.add(self.flvmux)
 
-        self.rtmpsink = Gst.ElementFactory.make("rtmpsink", "sink")
+        self.rtmpsink = Gst.ElementFactory.make("rtmpsink")
         self.rtmpsink.set_property("location", self.output_url)
         self.pipeline.add(self.rtmpsink)
 
