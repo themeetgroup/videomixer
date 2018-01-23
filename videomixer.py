@@ -14,14 +14,17 @@ class VideoMixer:
         self.output_url = output_url
         self.initialize()
 
-    # this method blocks until there are no input streams or an error occurs.
-    # TODO: can we make it async?
     def play(self):
         print("Playing...")
         self.pipeline.set_state(Gst.State.PLAYING)
         return
 
-    def add_rtmp_source(self, location, xpos, ypos, zorder=1, width=360, height=640):
+    def pause(self):
+        print("Pausing...")
+        self.pipeline.set_state(Gst.State.PAUSED)
+        return
+
+    def add_rtmp_source(self, location, xpos, ypos, zorder=1, width=None, height=None):
         rtmp_src = rtmpsource.RtmpSource(location,
                                          self.pipeline,
                                          self.videomixer,

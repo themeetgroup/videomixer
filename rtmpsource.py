@@ -9,7 +9,7 @@ from gi.repository import GObject, Gst, GstBase, GObject
 
 class RtmpSource:
     def __init__(self, location, pipeline, videomixer,
-                 xpos, ypos, zorder, width=None, height=None):
+                 xpos, ypos, zorder, width, height):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
@@ -24,8 +24,6 @@ class RtmpSource:
         self.zorder = zorder
         self.width = width
         self.height = height
-
-        self.is_live = False
 
         self.initialize()
 
@@ -153,7 +151,6 @@ class RtmpSource:
             raise Exception("Failed to hook up decode sink to videomixer")
 
         self.videomixer_sink = sink
-        self.is_live = True
 
     def set_position(self, xpos, ypos, zorder):
         self.xpos = xpos
@@ -165,9 +162,6 @@ class RtmpSource:
         self.videomixer_sink.set_property("zorder", self.zorder)
 
     def move(self, xdiff, ydiff, zdiff=0):
-        if self.is_live is False:
-            return
-
         self.xpos += xdiff
         self.xpos %= self.video_width
         self.ypos += ydiff
@@ -179,14 +173,8 @@ class RtmpSource:
         self.videomixer_sink.set_property("zorder", self.zorder)
 
     def resize(self, width, height):
-        if self.is_live is False:
-            return
-
         caps = Gst.Caps.from_string(self.get_caps_string(width, height))
         self.capsfilter.set_property("caps", caps)
 
     def get_caps_string(self, width, height):
         return "video/x-raw,width={},height={}".format(width, height)
-
-    def is_live(self):
-        return self.is_live

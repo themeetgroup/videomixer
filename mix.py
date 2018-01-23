@@ -13,14 +13,11 @@ import rtmpsource
 import videomixer
 
 class Mix:
-    input_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/mishatest1'
-    input_test_url2 = 'rtmp://stream-0-stage.taggedvideo.com/live/mishatest2'
-    input_testpattern_url = 'rtmp://stream-0-stage.taggedvideo.com/live/testpattern'
-    output_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink'
 
     def make_app(self):
         app = web.Application()
         app.router.add_route('POST', '/resize/{stream_id}', self.resize_handler)
+        app.router.add_route('POST', '/move/{stream_id}', self.move_handler)
         app.router.add_route('POST', '/create/{stream_id}', self.create_handler)
         app.router.add_route('POST', '/add_stream/{stream_id}', self.add_stream_handler)
         app.router.add_route('DELETE', '/delete/{stream_id}', self.delete_handler)
@@ -33,9 +30,27 @@ class Mix:
         else:
             print("Could not find stream {}".format(stream_id))
             return web.Response(text='{"status": "FAIL"}')
+        body = yield from request.json()
+        stream_uri = body['stream_uri']
+        xpos = body['x']
+        ypos = body['y']
+        zpos = body['z']
+        mixer = self.videomixers[stream_id]['mixer']
+        mixer.add_rtmp_source(stream_uri, xpos, ypos, zpos)
+        # kick off the new source
+        mixer.play()
         return web.Response(text='{"status": "OK"}')
 
     def resize_handler(self, request):
+        stream_id = request.match_info.get('stream_id')
+        if stream_id in self.videomixers:
+            print("Found stream")
+        else:
+            print("Could not find stream {}".format(stream_id))
+            return web.Response(text='{"status": "FAIL"}')
+        return web.Response(text='{"status": "OK"}')
+
+    def move_handler(self, request):
         stream_id = request.match_info.get('stream_id')
         if stream_id in self.videomixers:
             print("Found stream")
@@ -65,9 +80,9 @@ class Mix:
         bg_uri = body['bg_uri']
         print("Creating a videomixer for {} -> {}...".format(bg_uri, output_uri))
         self.videomixers[stream_id] = {}
-        mixer =  videomixer.VideoMixer(self.output_test_url)
+        mixer =  videomixer.VideoMixer(output_uri)
         self.videomixers[stream_id]['mixer'] = mixer
-        self.videomixers[stream_id]['bg'] = mixer.add_rtmp_source(self.input_testpattern_url, 0, 0, 100)
+        self.videomixers[stream_id]['bg'] = mixer.add_rtmp_source(bg_uri, 0, 0, 100)
         mixer.play()
         return web.Response(text="{'status': 'OK'}")
 
