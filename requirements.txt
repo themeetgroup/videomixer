@@ -1,3 +1,2 @@
-gi
 gbulb
 aiohttp
