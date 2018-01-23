@@ -18,26 +18,29 @@ class Mix:
 
     def make_app(self):
         app = web.Application()
-        app.router.add_route('POST',   '/resize/{stream_id}/{pip_id}',     self.resize_handler)
-        app.router.add_route('POST',   '/move/{stream_id}/{pip_id}',       self.move_handler)
-        app.router.add_route('PUT',    '/create/{stream_id}',              self.create_handler)
-        app.router.add_route('PUT',    '/stream/{stream_id}/{pip_id}',     self.add_stream_handler)
-        app.router.add_route('DELETE', '/stream/{stream_id}/{pip_id}',     self.remove_handler)
-        app.router.add_route('DELETE', '/delete/{stream_id}',              self.delete_handler)
+        app.router.add_route('PUT',    '/stream/{stream_id}',                 self.create_handler)
+        app.router.add_route('PUT',    '/stream/{stream_id}/{pip_id}',        self.add_stream_handler)
+        # TODO: implement these.
+        app.router.add_route('POST',   '/stream/{stream_id}/resize/{pip_id}', self.resize_handler)
+        app.router.add_route('POST',   '/stream/{stream_id}/move/{pip_id}',   self.move_handler)
+        app.router.add_route('DELETE', '/stream/{stream_id}/{pip_id}',        self.remove_handler)
+        app.router.add_route('DELETE', '/stream/{stream_id}',                 self.delete_handler)
         return app
 
     def add_stream_handler(self, request):
         stream_id = request.match_info.get('stream_id')
         pip_id = request.match_info.get('pip_id')
         if stream_id in self.videomixers:
-            print("Found stream")
+            print("Found stream {}".format(stream_id))
         else:
             print("Could not find stream {}".format(stream_id))
             return web.Response(text='{"status": "FAIL"}')
         body = yield from request.json()
         stream_uri = body['stream_uri']
+        # default to the origin (0, 0)
         xpos = body['x'] if 'x' in body else 0
         ypos = body['y'] if 'y' in body else 0
+        # default to z=1 (background has z=0)
         zpos = body['z'] if 'z' in body else 1
         mixer = self.videomixers[stream_id]['mixer']
         mixer.add_rtmp_source(pip_id, stream_uri, xpos, ypos, zpos)
