@@ -3,6 +3,7 @@
 import asyncio
 import gbulb
 from aiohttp import web
+import json
 import sys
 import gi
 gi.require_version('Gst', '1.0')
@@ -17,32 +18,39 @@ class Mix:
     input_testpattern_url = 'rtmp://stream-0-stage.taggedvideo.com/live/testpattern'
     output_test_url = 'rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink'
 
-    async def resize_handler(self, request):
-        print(request)
-        return web.Response(text="Hello")
+    def resize_handler(self, request):
+        stream_id = request.match_info.get('stream_id')
+        if stream_id in self.videomixers:
+            print("Found stream")
+        else:
+            print("Could not find stream {}".format(stream_id))
+            return web.Response(text='{"status": "FAIL"}')
+        return web.Response(text='{"status": "OK"}')
 
     def make_app(self):
         app = web.Application()
-        app.router.add_route('GET', '/resize', self.resize_handler)
+        app.router.add_route('POST', '/resize/{stream_id}', self.resize_handler)
+        app.router.add_route('POST', '/create/{stream_id}', self.create_handler)
         return app
+
+    def create_handler(self, request):
+        stream_id = request.match_info.get('stream_id')
+        body = yield from request.json()
+        print("Creating new stream {}".format(stream_id))
+        output_uri = body['output_uri']
+        bg_uri = body['bg_uri']
+        print("Creating a videomixer for {} -> {}...".format(bg_uri, output_uri))
+        self.videomixers[stream_id] = {}
+        mixer =  videomixer.VideoMixer(self.output_test_url)
+        self.videomixers[stream_id]['mixer'] = mixer
+        self.videomixers[stream_id]['bg'] = mixer.add_rtmp_source(self.input_testpattern_url, 0, 0, 100)
+        mixer.play()
+        return web.Response(text="{'status': 'OK'}")
 
     def __init__(self):
         Gst.init(sys.argv)
 
-        self.started = False
-
-        print("Creating a videomixer...")
-        self.videomix = videomixer.VideoMixer(self.output_test_url)
-        self.bg = self.videomix.add_rtmp_source(self.input_testpattern_url, 0, 0, 2, 1280, 720)
-        self.video1 = self.videomix.add_rtmp_source(self.input_test_url, 20, 20, 10, 360, 640)
-        self.video2 = self.videomix.add_rtmp_source(self.input_test_url2, 440, 20, 30, 180, 320)
-        self.focus = False
-
-        ## XXX: hackery, remove.
-        GLib.timeout_add(5000, self.resize_videos)
-
-        self.play()
-
+        self.videomixers = {}
         gbulb.install()
         loop = asyncio.get_event_loop()
 
@@ -52,23 +60,5 @@ class Mix:
 
         loop.run_until_complete(web_server)
         loop.run_forever()
-
-    def play(self):
-        if self.started is False:
-            self.started = True
-            self.videomix.play()
-            return True
-        return False
-
-    def resize_videos(self):
-        if self.focus is False:
-            self.video1.resize(180, 320)
-            self.video2.resize(360, 640)
-            self.focus = True
-        else:
-            self.video1.resize(360, 640)
-            self.video2.resize(180, 320)
-            self.focus = False
-        return True
 
 start = Mix()

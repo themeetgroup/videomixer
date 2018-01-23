@@ -9,7 +9,7 @@ from gi.repository import GObject, Gst, GstBase, GObject
 
 class RtmpSource:
     def __init__(self, location, pipeline, videomixer,
-                 xpos, ypos, zorder, width, height):
+                 xpos, ypos, zorder, width=None, height=None):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
@@ -49,9 +49,10 @@ class RtmpSource:
         self.pipeline.add(self.videoscale)
 
         self.capsfilter = Gst.ElementFactory.make("capsfilter")
-        caps_string = self.get_caps_string(self.width, self.height)
-        self.vidcaps = Gst.Caps.from_string(caps_string)
-        self.capsfilter.set_property("caps", self.vidcaps)
+        if (self.width is not None and self.height is not None):
+            caps_string = self.get_caps_string(self.width, self.height)
+            self.vidcaps = Gst.Caps.from_string(caps_string)
+            self.capsfilter.set_property("caps", self.vidcaps)
         self.pipeline.add(self.capsfilter)
 
         # Link the RTMP source to the FLV demuxer
@@ -117,7 +118,7 @@ class RtmpSource:
                 src.get_name()))
 
         video_pad_caps = new_pad.get_current_caps()
-        video_pad_caps0 = video_pad_caps.get_structure(0)
+        caps0 = video_pad_caps.get_structure(0)
         (ok, self.video_width) = caps0.get_int("width")
         (ok, self.video_height) = caps0.get_int("height")
 
