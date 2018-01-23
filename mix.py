@@ -34,9 +34,9 @@ class Mix:
             return web.Response(text='{"status": "FAIL"}')
         body = yield from request.json()
         stream_uri = body['stream_uri']
-        xpos = body['x']
-        ypos = body['y']
-        zpos = body['z']
+        xpos = body['x'] if 'x' in body else 0
+        ypos = body['y'] if 'y' in body else 0
+        zpos = body['z'] if 'z' in body else 1
         mixer = self.videomixers[stream_id]['mixer']
         mixer.add_rtmp_source(stream_uri, xpos, ypos, zpos)
         # kick off the new source
