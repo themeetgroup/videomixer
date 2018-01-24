@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from aiohttp import web
-import sys
 import videomixer
 
 class MixerApi:

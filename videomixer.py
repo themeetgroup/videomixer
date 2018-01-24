@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import rtmpsource
 import gi
 gi.require_version('Gst', '1.0')
@@ -38,7 +37,7 @@ class VideoMixer:
 
         if self.pipeline is None:
             print("Could not create pipeline. Bailing out!")
-            sys.exit(1)
+            raise Exception("Could not create pipeline in videomixer")
 
         print("Creating objects and adding to pipeline...")
         self.videomixer = Gst.ElementFactory.make("videomixer")
