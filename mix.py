@@ -2,8 +2,6 @@
 
 import asyncio
 import gbulb
-from aiohttp import web
-import json
 import sys
 import gi
 gi.require_version('Gst', '1.0')

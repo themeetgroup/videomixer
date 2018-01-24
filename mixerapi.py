@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
 
-import asyncio
-import gbulb
 from aiohttp import web
-import json
 import sys
-import gi
-gi.require_version('Gst', '1.0')
-gi.require_version('GstBase', '1.0')
-from gi.repository import GObject, Gst, GstBase, GObject, GLib
-import rtmpsource
 import videomixer
 
 class MixerApi:
