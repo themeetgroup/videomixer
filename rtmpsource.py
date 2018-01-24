@@ -31,15 +31,20 @@ class RtmpSource:
         # Create and hook up relevant objects
         print("Creating RtmpSource objects")
         # TODO: handle audio pipeline stuff, too
+        # TODO: Look into uridecodebin ?
         self.rtmp_src = Gst.ElementFactory.make("rtmpsrc")
         self.rtmp_src.set_property("location", self.location)
         self.pipeline.add(self.rtmp_src)
 
         self.flvdemux = Gst.ElementFactory.make("flvdemux")
+        # We listen for the pad-added event of flvdemux so that
+        # we can link the demuxed pads to the rest of the pipeline.
         self.flvdemux.connect("pad-added", self.on_flvdemux_pad_added)
         self.pipeline.add(self.flvdemux)
 
         self.decodebin = Gst.ElementFactory.make("decodebin")
+        # We listen for the pad-added event of decodebin so that
+        # we can link the decoded video pad to the mixer sink.
         self.decodebin.connect("pad-added", self.on_decode_pad_added)
         self.pipeline.add(self.decodebin)
 
@@ -47,6 +52,9 @@ class RtmpSource:
         self.pipeline.add(self.videoscale)
 
         self.capsfilter = Gst.ElementFactory.make("capsfilter")
+        # Only change the width and height if they're set. Otherwise
+        # leave it unchanged. videoscale+capsfilter shouldn't do
+        # anything if there aren't any caps set.
         if (self.width is not None and self.height is not None):
             caps_string = self.get_caps_string(self.width, self.height)
             self.vidcaps = Gst.Caps.from_string(caps_string)
