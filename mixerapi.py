@@ -45,6 +45,7 @@ class MixerApi:
 
     def resize_handler(self, request):
         stream_id = request.match_info.get('stream_id')
+        pip_id = request.match_info.get('pip_id')
         if stream_id in self.videomixers:
             print("Found stream")
         else:
@@ -54,8 +55,9 @@ class MixerApi:
 
     def move_handler(self, request):
         stream_id = request.match_info.get('stream_id')
+        pip_id = request.match_info.get('pip_id')
         if stream_id in self.videomixers:
-            print("Found stream")
+            print("Found stream {}".format(stream_id))
         else:
             print("Could not find stream {}".format(stream_id))
             return web.Response(text='{"status": "FAIL"}')
@@ -63,8 +65,9 @@ class MixerApi:
 
     def remove_handler(self, request):
         stream_id = request.match_info.get('stream_id')
+        pip_id = request.match_info.get('pip_id')
         if stream_id in self.videomixers:
-            print("Found stream")
+            print("Found stream {}".format(stream_id))
         else:
             print("Could not find stream {}".format(stream_id))
             return web.Response(text='{"status": "FAIL"}')
@@ -73,7 +76,7 @@ class MixerApi:
     def delete_handler(self, request):
         stream_id = request.match_info.get('stream_id')
         if stream_id in self.videomixers:
-            print("Found stream")
+            print("Found stream {}".format(stream_id))
         else:
             print("Could not find stream {}".format(stream_id))
             return web.Response(text='{"status": "FAIL"}')
