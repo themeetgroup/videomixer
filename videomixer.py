@@ -31,6 +31,16 @@ class VideoMixer:
                                                      xpos, ypos, zorder, width, height)
         return self.sources[pip_id]
 
+    def resize_rtmp_source(self, pip_id, width, height):
+        if pip_id not in self.sources:
+            raise Exception("pip_id={} does not exist".format(pip_id))
+        self.sources[pip_id].resize(width, height)
+
+    def move_rtmp_source(self, pip_id, x, y, z):
+        if pip_id not in self.sources:
+            raise Exception("pip_id={} does not exist".format(pip_id))
+        self.sources[pip_id].move(x, y, z)
+
     def initialize(self):
         print("Creating pipeline...")
         self.pipeline = Gst.Pipeline.new()

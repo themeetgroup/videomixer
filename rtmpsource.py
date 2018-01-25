@@ -159,7 +159,7 @@ class RtmpSource:
 
         self.videomixer_sink = sink
 
-    def set_position(self, xpos, ypos, zorder):
+    def move(self, xpos, ypos, zorder):
         self.xpos = xpos
         self.ypos = ypos
         self.zorder = zorder
@@ -168,7 +168,7 @@ class RtmpSource:
         self.videomixer_sink.set_property("ypos", self.ypos)
         self.videomixer_sink.set_property("zorder", self.zorder)
 
-    def move(self, xdiff, ydiff, zdiff=0):
+    def shift(self, xdiff, ydiff, zdiff=0):
         self.xpos += xdiff
         self.xpos %= self.video_width
         self.ypos += ydiff
