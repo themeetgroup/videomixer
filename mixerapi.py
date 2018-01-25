@@ -2,6 +2,7 @@
 
 from aiohttp import web
 import videomixer
+import json
 
 
 class MixerApi:
@@ -10,6 +11,9 @@ class MixerApi:
 
         app = web.Application()
         print("Starting API server...")
+        app.router.add_route('GET',
+                             '/streams',
+                             self.get_streams_handler)
         app.router.add_route('PUT',
                              '/stream/{stream_id}',
                              self.create_handler)
@@ -34,6 +38,12 @@ class MixerApi:
 
     def get_handler(self):
         return self.app.make_handler()
+
+    def get_streams_handler(self, request):
+        streams = []
+        for stream_id in self.videomixers.keys():
+            streams.append(stream_id)
+        return web.Response(text=json.dumps(streams))
 
     def add_stream_handler(self, request):
         stream_id = request.match_info.get('stream_id')
