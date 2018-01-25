@@ -14,10 +14,12 @@ class MixerApi:
         app.router.add_route('GET',
                              '/streams',
                              self.get_streams_handler)
+        app.router.add_route('GET',
+                             '/stream/{stream_id}',
+                             self.get_stream_handler)
         app.router.add_route('PUT',
                              '/stream/{stream_id}',
                              self.create_handler)
-
         app.router.add_route('PUT',
                              '/stream/{stream_id}/{pip_id}',
                              self.add_stream_handler)
@@ -27,9 +29,6 @@ class MixerApi:
         app.router.add_route('POST',
                              '/stream/{stream_id}/move/{pip_id}',
                              self.move_pip_handler)
-        app.router.add_route('GET',
-                             '/stream/{stream_id}',
-                             self.get_stream_handler)
         # TODO: implement these.
         app.router.add_route('DELETE',
                              '/stream/{stream_id}/{pip_id}',
