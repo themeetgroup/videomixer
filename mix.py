@@ -9,6 +9,7 @@ gi.require_version('GstBase', '1.0')
 from gi.repository import GObject, Gst, GstBase, GObject, GLib
 import mixerapi
 
+
 class Mix:
     bind_addr = '0.0.0.0'
     listen_port = 8888
@@ -22,10 +23,14 @@ class Mix:
 
         self.mixerapi = mixerapi.MixerApi()
         handler = self.mixerapi.get_handler()
-        web_server = loop.create_server(handler, self.bind_addr, self.listen_port)
+        web_server = loop.create_server(handler,
+                                        self.bind_addr,
+                                        self.listen_port)
 
-        print("Ready! Listening on {}:{}".format(self.bind_addr, self.listen_port))
+        print("Ready! Listening on {}:{}".format(self.bind_addr,
+                                                 self.listen_port))
         loop.run_until_complete(web_server)
         loop.run_forever()
+
 
 start = Mix()

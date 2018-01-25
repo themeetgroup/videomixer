@@ -3,19 +3,33 @@
 from aiohttp import web
 import videomixer
 
+
 class MixerApi:
     def __init__(self):
         self.videomixers = {}
 
         app = web.Application()
         print("Starting API server...")
-        app.router.add_route('PUT',    '/stream/{stream_id}',                 self.create_handler)
-        app.router.add_route('PUT',    '/stream/{stream_id}/{pip_id}',        self.add_stream_handler)
-        app.router.add_route('POST',   '/stream/{stream_id}/resize/{pip_id}', self.resize_handler)
-        app.router.add_route('POST',   '/stream/{stream_id}/move/{pip_id}',   self.move_pip_handler)
+        app.router.add_route('PUT',
+                             '/stream/{stream_id}',
+                             self.create_handler)
+
+        app.router.add_route('PUT',
+                             '/stream/{stream_id}/{pip_id}',
+                             self.add_stream_handler)
+        app.router.add_route('POST',
+                             '/stream/{stream_id}/resize/{pip_id}',
+                             self.resize_handler)
+        app.router.add_route('POST',
+                             '/stream/{stream_id}/move/{pip_id}',
+                             self.move_pip_handler)
         # TODO: implement these.
-        app.router.add_route('DELETE', '/stream/{stream_id}/{pip_id}',        self.remove_pip_handler)
-        app.router.add_route('DELETE', '/stream/{stream_id}',                 self.delete_handler)
+        app.router.add_route('DELETE',
+                             '/stream/{stream_id}/{pip_id}',
+                             self.remove_pip_handler)
+        app.router.add_route('DELETE',
+                             '/stream/{stream_id}',
+                             self.delete_handler)
         self.app = app
 
     def get_handler(self):
@@ -122,7 +136,7 @@ class MixerApi:
               bg_uri,
               output_uri))
 
-        mixer =  videomixer.VideoMixer(output_uri)
+        mixer = videomixer.VideoMixer(output_uri)
         mixer.add_rtmp_source('bg', bg_uri)
         mixer.play()
         # Keep track of the mixer for future requests
