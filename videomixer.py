@@ -43,6 +43,12 @@ class VideoMixer:
             raise Exception("pip_id={} does not exist".format(pip_id))
         self.sources[pip_id].move(x, y, z)
 
+    def get_info(self):
+        ret = {'pip_streams': {}}
+        for pip_id in self.sources.keys():
+            ret['pip_streams'][pip_id] = self.sources[pip_id].get_info()
+        return ret
+
     def initialize(self):
         print("Creating pipeline...")
         self.pipeline = Gst.Pipeline.new()

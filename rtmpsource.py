@@ -185,3 +185,19 @@ class RtmpSource:
 
     def get_caps_string(self, width, height):
         return "video/x-raw,width={},height={}".format(width, height)
+
+    def get_info(self):
+        ret = {}
+        ret['orig_video'] = {
+            'location': self.location,
+            'width': self.video_width,
+            'height': self.video_height
+        }
+        ret['video'] = {
+            'width': self.width,
+            'height': self.height,
+            'xpos': self.xpos,
+            'ypos': self.ypos,
+            'zorder': self.zorder
+        }
+        return ret

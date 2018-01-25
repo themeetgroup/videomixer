@@ -27,6 +27,9 @@ class MixerApi:
         app.router.add_route('POST',
                              '/stream/{stream_id}/move/{pip_id}',
                              self.move_pip_handler)
+        app.router.add_route('GET',
+                             '/stream/{stream_id}',
+                             self.get_stream_handler)
         # TODO: implement these.
         app.router.add_route('DELETE',
                              '/stream/{stream_id}/{pip_id}',
@@ -118,6 +121,22 @@ class MixerApi:
             return web.Response(text=self.fail_status())
 
         return web.Response(text=self.ok_status())
+
+    def get_stream_handler(self, request):
+        stream_id = request.match_info.get('stream_id')
+
+        if stream_id in self.videomixers:
+            print("Found stream {}".format(stream_id))
+        else:
+            print("Could not find stream {}".format(stream_id))
+            return web.Response(text=self.fail_status())
+
+        mixer = self.videomixers[stream_id]
+        ret = {}
+        ret['stream_id'] = stream_id
+        ret['mixer'] = mixer.get_info()
+
+        return web.Response(text=json.dumps(ret))
 
     def delete_handler(self, request):
         stream_id = request.match_info.get('stream_id')
