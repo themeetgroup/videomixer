@@ -65,6 +65,11 @@ class VideoMixer:
         self.x264enc.set_property("threads", 0)
         self.pipeline.add(self.x264enc)
 
+        self.x264caps = Gst.ElementFactory.make("capsfilter")
+        caps = Gst.Caps.from_string("video/x-h264, profile=baseline")
+        self.x264caps.set_property("caps", caps)
+        self.pipeline.add(self.x264caps)
+
         self.flvmux = Gst.ElementFactory.make("flvmux")
         self.flvmux.set_property("streamable", 1)
         self.pipeline.add(self.flvmux)
@@ -76,8 +81,9 @@ class VideoMixer:
         print("Linking elements")
         # Encode the output of videomixer to H.264
         ret = self.videomixer.link(self.x264enc)
+        ret = self.x264enc.link(self.x264caps)
         # Put the H.264 into an FLV container
-        ret = ret and self.x264enc.link(self.flvmux)
+        ret = ret and self.x264caps.link(self.flvmux)
         # Send the FLV to an RTMP sink
         ret = ret and self.flvmux.link(self.rtmpsink)
         # TODO: handle audio pipeline stuff, too
