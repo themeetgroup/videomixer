@@ -2,7 +2,12 @@ videomixer
 ==========
 videomixer is a Python HACKD POC to demonstrate video streaming middleware using the GStreamer library.
 
-It runs a web server on port 8888 and provides RTMP mixing functionality.
+It runs a web server on port 8888 and provides RTMP mixing functionality. The easiest way to run it is via the Dockerfile. Make sure to have Docker installed and then you can run `./run.sh`
+
+Using the Docker container is highly recommended since the base image contains all the proper GStreamer libraries and plugins required for things to work.
+
+API
+===
 
 The `/stream/{stream_id}` endpoint allows to create a new stream using `PUT`
 
