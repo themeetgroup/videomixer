@@ -1,2 +1,2 @@
 gbulb
-aiohttp
+aiohttp==2.3.8
