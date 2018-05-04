@@ -1,4 +1,4 @@
-FROM dockerregistry.tagged.com/video/videomixer:1.0
+FROM videomixer-base:latest
 MAINTAINER Misha Nasledov <misha@themeetgroup.com>
 
 ADD . /videomixer

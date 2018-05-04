@@ -20,8 +20,8 @@ It requires the `stream_id` in the URL as well as a `bg_uri` and an `output_uri`
 E.g.:
 
     $ curl -H "Content-Type: application/json" -X PUT  \
-      -d '{"bg_uri":"rtmp://stream-0-stage.taggedvideo.com/live/testpattern",
-           "output_uri":"rtmp://stream-0-stage.taggedvideo.com/live/rtmpsink"}' \
+      -d '{"bg_uri":"rtmp://rtmpserver/live/testpattern",
+           "output_uri":"rtmp://rtmpserver/live/rtmpsink"}' \
       http://localhost:8888/stream/asdf
 
 The `/stream/{stream_id}/{pip_id}` endpoint allows to add streams as PiP (Picture in Picture) to extant streams using `PUT`
@@ -39,7 +39,7 @@ It requires the `stream_id` and `pip_id` in the URL as well, as well as `stream_
 E.g.:
 
     $ curl -H "Content-Type: application/json" -X PUT  \
-      -d '{"stream_uri":"rtmp://stream-0-stage.taggedvideo.com/live/mishatest1",
+      -d '{"stream_uri":"rtmp://rtmpserver/live/mishatest1",
            "x":20, "y":20, "z":101}' \
       http://localhost:8888/stream/asdf/pipstream1
 
