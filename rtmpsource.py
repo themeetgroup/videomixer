@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import gi
-from gi.repository import GObject, Gst, GstBase, GObject
 gi.require_version('Gst', '1.0')
 gi.require_version('GstBase', '1.0')
+from gi.repository import GObject, Gst, GstBase, GObject  # noqa: E402
 
 
 class RtmpSource:
