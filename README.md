@@ -9,7 +9,7 @@ Using the Docker container is highly recommended since the base image contains a
 API
 ===
 
-The `/stream/{stream_id}` endpoint allows to create a new stream using `PUT`
+`PUT /stream/{stream_id}` this endpoint allows to create a new stream using
 
 It requires the `stream_id` in the URL as well as a `bg_uri` and an `output_uri`. The `stream_id` will be used to identify this stream for future requests.
 
@@ -24,7 +24,7 @@ E.g.:
            "output_uri":"rtmp://rtmpserver/live/rtmpsink"}' \
       http://localhost:8888/stream/asdf
 
-The `/stream/{stream_id}/{pip_id}` endpoint allows to add streams as PiP (Picture in Picture) to extant streams using `PUT`
+`PUT /stream/{stream_id}/{pip_id}` -- this endpoint allows to add streams as PiP (Picture in Picture) to extant streams
 
 It requires the `stream_id` and `pip_id` in the URL as well, as well as `stream_uri`, `x`, `y`, and `z`. The `pip_id` in combination with the `stream_id` will be used to identify this PiP stream in future requests.
 
