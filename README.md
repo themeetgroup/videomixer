@@ -43,6 +43,12 @@ E.g.:
            "x":20, "y":20, "z":101}' \
       http://localhost:8888/stream/asdf/pipstream1
 
+Building and running a container
+================================
+
+To build and run a container, one must first build the videomixer-base image. Run `./build_base.sh` to build it. This container has all the GStreamer dependencies needed to run videomixer.
+
+Afterward, it is sufficient to run `./run.sh` to build and run a videomixer container.
 
 TODO
 ====
