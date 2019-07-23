@@ -119,6 +119,8 @@ class MixerApi:
             print("Could not find stream {}".format(stream_id))
             return web.Response(text=self.fail_status())
 
+        # XXX: implement this
+
         return web.Response(text=self.ok_status())
 
     def get_stream_handler(self, request):
@@ -145,6 +147,8 @@ class MixerApi:
         else:
             print("Could not find stream {}".format(stream_id))
             return web.Response(text=self.fail_status())
+
+        # XXX: implement this
 
         return web.Response(text=self.ok_status())
 
