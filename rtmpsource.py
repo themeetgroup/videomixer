@@ -8,15 +8,18 @@ from gi.repository import GObject, Gst, GstBase, GObject  # noqa: E402
 
 class RtmpSource:
     def __init__(self, location, pipeline, videomixer,
-                 xpos, ypos, zorder, width, height):
+                 audiomixer, xpos, ypos, zorder, width, height):
         # RTMP stream location
         self.location = location
         # GStreamer Pipeline to attach to
         self.pipeline = pipeline
         # The videomixer to output to
         self.videomixer = videomixer
+        # The audiomixer to output to
+        self.audiomixer = audiomixer
         # Not ready.
         self.videomixer_sink = None
+        self.audiomixer_sink = None
 
         self.xpos = xpos
         self.ypos = ypos
@@ -29,23 +32,37 @@ class RtmpSource:
     def initialize(self):
         # Create and hook up relevant objects
         print("Creating RtmpSource objects")
-        # TODO: handle audio pipeline stuff, too
-        # TODO: Look into uridecodebin ?
+
         self.rtmp_src = Gst.ElementFactory.make("rtmpsrc")
         self.rtmp_src.set_property("location", self.location)
         self.pipeline.add(self.rtmp_src)
 
+        self.audio_queue = Gst.ElementFactory.make("queue")
+        self.video_queue = Gst.ElementFactory.make("queue")
         self.flvdemux = Gst.ElementFactory.make("flvdemux")
         # We listen for the pad-added event of flvdemux so that
         # we can link the demuxed pads to the rest of the pipeline.
         self.flvdemux.connect("pad-added", self.on_flvdemux_pad_added)
         self.pipeline.add(self.flvdemux)
+        self.pipeline.add(self.video_queue)
+        self.pipeline.add(self.audio_queue)
+
+        self.audio_convert = Gst.ElementFactory.make("audioconvert")
+        self.pipeline.add(self.audio_convert)
+        self.audio_resample = Gst.ElementFactory.make("audioresample")
+        self.pipeline.add(self.audio_resample)
 
         self.decodebin = Gst.ElementFactory.make("decodebin")
         # We listen for the pad-added event of decodebin so that
         # we can link the decoded video pad to the mixer sink.
-        self.decodebin.connect("pad-added", self.on_decode_pad_added)
+        self.decodebin.connect("pad-added", self.on_decode_video_pad_added)
         self.pipeline.add(self.decodebin)
+
+        self.audio_decodebin = Gst.ElementFactory.make("decodebin")
+        # We listen for the pad-added event of decodebin so that
+        # we can link the decoded audio pad to the mixer sink.
+        self.audio_decodebin.connect("pad-added", self.on_decode_audio_pad_added)
+        self.pipeline.add(self.audio_decodebin)
 
         self.videoscale = Gst.ElementFactory.make("videoscale")
         self.pipeline.add(self.videoscale)
@@ -62,6 +79,10 @@ class RtmpSource:
 
         # Link the RTMP source to the FLV demuxer
         ret = self.rtmp_src.link(self.flvdemux)
+        # Link the video queue to the decodebin
+        ret = ret and self.video_queue.link(self.decodebin)
+        # Link the audio queue to the decodebin
+        ret = ret and self.audio_queue.link(self.audio_decodebin)
 
         # Link the videoscaler to the capsfilter
         ret = ret and self.videoscale.link(self.capsfilter)
@@ -91,11 +112,11 @@ class RtmpSource:
         new_pad_type = new_pad_struct.get_name()
 
         if new_pad_type.startswith("audio"):
-            print("Got audio pad. Not currently handling it.")
-            return
+            print("Got audio pad")
+            sink_pad = self.audio_queue.get_static_pad("sink")
         elif new_pad_type.startswith("video"):
             print("Got video pad")
-            sink_pad = self.decodebin.get_static_pad("sink")
+            sink_pad = self.video_queue.get_static_pad("sink")
         else:
             print("Type '{0:s}' which is not audio/video. Ignoring.".format(
                 new_pad_type))
@@ -116,9 +137,32 @@ class RtmpSource:
 
         print("Linked {0:s} pad".format(new_pad.get_name()))
 
-    def on_decode_pad_added(self, src, new_pad):
+    def on_decode_audio_pad_added(self, src, new_pad):
         print(
-            "Received new decodebin pad '{0:s}' from '{1:s}'".format(
+            "Received new audio decodebin pad '{0:s}' from '{1:s}'".format(
+                new_pad.get_name(),
+                src.get_name()))
+
+        # Get a sink pad from the audioconvert module
+        sink = self.audio_convert.get_static_pad("sink")
+
+        if (sink is None):
+            print("Could not get audioconvert sink!")
+            return
+
+        ret = new_pad.link(sink)
+        ret = ret and self.audio_convert.link(self.audio_resample)
+        ret = ret and self.audio_resample.link(self.audiomixer)
+
+        if ret is None:
+            print("Could not hook up new pad to audioconvert sink")
+            raise Exception("Failed to hook up decode sink to audioconvert / audiomixer")
+
+        return
+
+    def on_decode_video_pad_added(self, src, new_pad):
+        print(
+            "Received new video decodebin pad '{0:s}' from '{1:s}'".format(
                 new_pad.get_name(),
                 src.get_name()))
 

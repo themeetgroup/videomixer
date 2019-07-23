@@ -16,6 +16,8 @@ class Mix:
 
     def __init__(self):
         Gst.init(sys.argv)
+        # Gst.debug_set_active(True)
+        # Gst.debug_set_default_threshold(4)
 
         print("Initializing videomixer application...")
         gbulb.install()

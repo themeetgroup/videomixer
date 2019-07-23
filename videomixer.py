@@ -29,6 +29,7 @@ class VideoMixer:
         self.sources[pip_id] = rtmpsource.RtmpSource(location,
                                                      self.pipeline,
                                                      self.videomixer,
+                                                     self.audiomixer,
                                                      xpos, ypos, zorder,
                                                      width, height)
         return self.sources[pip_id]
@@ -61,6 +62,12 @@ class VideoMixer:
         self.videomixer = Gst.ElementFactory.make("videomixer")
         self.pipeline.add(self.videomixer)
 
+        self.audiomixer = Gst.ElementFactory.make("audiomixer")
+        self.pipeline.add(self.audiomixer)
+
+        self.faac = Gst.ElementFactory.make("avenc_aac")
+        self.pipeline.add(self.faac)
+
         self.x264enc = Gst.ElementFactory.make("x264enc")
         self.x264enc.set_property("threads", 0)
         self.pipeline.add(self.x264enc)
@@ -81,12 +88,17 @@ class VideoMixer:
         print("Linking elements")
         # Encode the output of videomixer to H.264
         ret = self.videomixer.link(self.x264enc)
-        ret = self.x264enc.link(self.x264caps)
+        ret = ret and self.x264enc.link(self.x264caps)
         # Put the H.264 into an FLV container
         ret = ret and self.x264caps.link(self.flvmux)
         # Send the FLV to an RTMP sink
         ret = ret and self.flvmux.link(self.rtmpsink)
-        # TODO: handle audio pipeline stuff, too
+
+        print("Linking audio pipeline")
+        ret = ret and self.audiomixer.link(self.faac)
+        # XXX: uncomment below to enable audio pipeline.
+        # NOTE: this causes videomixer to freeze currently.
+        # ret = ret and self.faac.link(self.flvmux)
 
         if not ret:
             print("ERROR: Elements could not be linked.")
