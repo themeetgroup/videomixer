@@ -60,12 +60,12 @@ class MixerApi:
         body = yield from request.json()
         stream_uri = body['stream_uri']
         # default to the origin (0, 0)
-        xpos = body['x'] if 'x' in body else 0
-        ypos = body['y'] if 'y' in body else 0
+        xpos = int(body['x']) if 'x' in body else 0
+        ypos = int(body['y']) if 'y' in body else 0
         # default to z=1 (background has z=0)
-        zpos = body['z'] if 'z' in body else 1
+        zpos = int(body['z']) if 'z' in body else 1
 
-        mixer = self.videomixers[stream_id]['mixer']
+        mixer = self.videomixers[stream_id]
         mixer.add_rtmp_source(pip_id, stream_uri, xpos, ypos, zpos)
         # kick off the new source
         mixer.play()
